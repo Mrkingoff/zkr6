@@ -1,0 +1,267 @@
+-- Roblox Circular Minimizable Menu with Sound and Zombie Animation
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Get local player
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AdvancedMenuSystem"
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Create circular minimize button
+local CircleButton = Instance.new("ImageButton")
+CircleButton.Name = "CircleButton"
+CircleButton.Size = UDim2.new(0, 50, 0, 50)
+CircleButton.Position = UDim2.new(0, 20, 0.5, -25)
+CircleButton.AnchorPoint = Vector2.new(0, 0.5)
+CircleButton.BackgroundColor3 = Color3.fromRGB(85, 0, 127) -- Purple
+CircleButton.BackgroundTransparency = 0.3
+CircleButton.Image = "rbxassetid://7072718362" -- Replace with your logo image ID
+CircleButton.ScaleType = Enum.ScaleType.Fit
+CircleButton.Parent = ScreenGui
+
+-- Make circle button round
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = CircleButton
+
+-- Create main menu frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 300, 0, 250)
+MainFrame.Position = UDim2.new(0, 20, 0.5, -125)
+MainFrame.AnchorPoint = Vector2.new(0, 0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 0, 70) -- Dark purple
+MainFrame.BackgroundTransparency = 0.2
+MainFrame.Visible = false
+MainFrame.Parent = ScreenGui
+
+-- Add corner radius to main frame
+local FrameCorner = Instance.new("UICorner")
+FrameCorner.CornerRadius = UDim.new(0.1, 0)
+FrameCorner.Parent = MainFrame
+
+-- Add title bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 30)
+TitleBar.BackgroundColor3 = Color3.fromRGB(85, 0, 127)
+TitleBar.BackgroundTransparency = 0.1
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0.1, 0)
+TitleCorner.Parent = TitleBar
+
+local TitleText = Instance.new("TextLabel")
+TitleText.Name = "TitleText"
+TitleText.Size = UDim2.new(1, -40, 1, 0)
+TitleText.Position = UDim2.new(0, 10, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Text = "Advanced Menu"
+TitleText.TextColor3 = Color3.new(1, 1, 1)
+TitleText.Font = Enum.Font.GothamBold
+TitleText.TextSize = 14
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.Parent = TitleBar
+
+-- Close button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 30, 1, 0)
+CloseButton.Position = UDim2.new(1, -30, 0, 0)
+CloseButton.BackgroundTransparency = 1
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 14
+CloseButton.Parent = TitleBar
+
+-- Make frame draggable
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(0, startPos.X.Offset + delta.X, 0.5, startPos.Y.Offset + delta.Y)
+end
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Create buttons container
+local ButtonsFrame = Instance.new("Frame")
+ButtonsFrame.Name = "ButtonsFrame"
+ButtonsFrame.Size = UDim2.new(1, -20, 1, -50)
+ButtonsFrame.Position = UDim2.new(0, 10, 0, 40)
+ButtonsFrame.BackgroundTransparency = 1
+ButtonsFrame.Parent = MainFrame
+
+-- Play Sound button
+local PlaySoundButton = Instance.new("TextButton")
+PlaySoundButton.Name = "PlaySoundButton"
+PlaySoundButton.Size = UDim2.new(1, 0, 0, 40)
+PlaySoundButton.Position = UDim2.new(0, 0, 0, 0)
+PlaySoundButton.BackgroundColor3 = Color3.fromRGB(105, 0, 157) -- Purple
+PlaySoundButton.Text = "Play Sound"
+PlaySoundButton.TextColor3 = Color3.new(1, 1, 1)
+PlaySoundButton.Font = Enum.Font.GothamBold
+PlaySoundButton.TextSize = 14
+PlaySoundButton.Parent = ButtonsFrame
+
+local SoundButtonCorner = Instance.new("UICorner")
+SoundButtonCorner.CornerRadius = UDim.new(0.1, 0)
+SoundButtonCorner.Parent = PlaySoundButton
+
+-- Reanimate Zombie button
+local ZombieButton = Instance.new("TextButton")
+ZombieButton.Name = "ZombieButton"
+ZombieButton.Size = UDim2.new(1, 0, 0, 40)
+ZombieButton.Position = UDim2.new(0, 0, 0, 50)
+ZombieButton.BackgroundColor3 = Color3.fromRGB(105, 0, 157) -- Purple
+ZombieButton.Text = "Reanim Zombie"
+ZombieButton.TextColor3 = Color3.new(1, 1, 1)
+ZombieButton.Font = Enum.Font.GothamBold
+ZombieButton.TextSize = 14
+ZombieButton.Parent = ButtonsFrame
+
+local ZombieButtonCorner = Instance.new("UICorner")
+ZombieButtonCorner.CornerRadius = UDim.new(0.1, 0)
+ZombieButtonCorner.Parent = ZombieButton
+
+-- Toggle menu visibility
+local menuVisible = false
+local function toggleMenu()
+    menuVisible = not menuVisible
+    MainFrame.Visible = menuVisible
+    
+    -- Animate the circle button
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    if menuVisible then
+        local tween = TweenService:Create(
+            CircleButton,
+            tweenInfo,
+            {BackgroundTransparency = 0.7, Size = UDim2.new(0, 40, 0, 40)}
+        )
+        tween:Play()
+    else
+        local tween = TweenService:Create(
+            CircleButton,
+            tweenInfo,
+            {BackgroundTransparency = 0.3, Size = UDim2.new(0, 50, 0, 50)}
+        )
+        tween:Play()
+    end
+end
+
+CircleButton.MouseButton1Click:Connect(toggleMenu)
+CloseButton.MouseButton1Click:Connect(toggleMenu)
+
+-- Play Sound function
+PlaySoundButton.MouseButton1Click:Connect(function()
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://133658347485975"
+    sound.Parent = SoundService
+    sound:Play()
+    
+    -- Button click effect
+    local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(
+        PlaySoundButton,
+        tweenInfo,
+        {BackgroundColor3 = Color3.fromRGB(85, 0, 127)}
+    )
+    tween:Play()
+    tween.Completed:Connect(function()
+        local tween2 = TweenService:Create(
+            PlaySoundButton,
+            tweenInfo,
+            {BackgroundColor3 = Color3.fromRGB(105, 0, 157)}
+        )
+        tween2:Play()
+    end)
+end)
+
+-- Zombie Animation function
+local function createZombieAnimation()
+    -- Create animation for R6 character
+    local animateScript = character:FindFirstChild("Animate")
+    if not animateScript then return end
+    
+    -- Create zombie animation
+    local zombieAnimation = Instance.new("Animation")
+    zombieAnimation.Name = "ZombieAnimation"
+    zombieAnimation.AnimationId = "rbxassetid://35154961" -- Default zombie animation
+    
+    -- Load animation
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        local animator = humanoid:FindFirstChildOfClass("Animator")
+        if animator then
+            local animationTrack = animator:LoadAnimation(zombieAnimation)
+            animationTrack:Play()
+            
+            -- Change walk animation to zombie style
+            local walkAnimation = animateScript:FindFirstChild("walk")
+            if walkAnimation then
+                walkAnimation.walkAnim.AnimationId = "rbxassetid://35154961"
+            end
+            
+            -- Button click effect
+            local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            local tween = TweenService:Create(
+                ZombieButton,
+                tweenInfo,
+                {BackgroundColor3 = Color3.fromRGB(85, 0, 127)}
+            )
+            tween:Play()
+            tween.Completed:Connect(function()
+                local tween2 = TweenService:Create(
+                    ZombieButton,
+                    tweenInfo,
+                    {BackgroundColor3 = Color3.fromRGB(105, 0, 157)}
+                )
+                tween2:Play()
+            end)
+        end
+    end
+end
+
+ZombieButton.MouseButton1Click:Connect(createZombieAnimation)
+
+-- Character added event
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+end)
